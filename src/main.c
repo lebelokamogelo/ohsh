@@ -1,5 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <string.h>
 
 #define BUFSIZE 1024
 #define TOKEN_BUFSIZE 64
@@ -8,6 +11,24 @@
 void ohsh_loop(void);
 char *ohsh_read_line(void);
 char **ohsh_split_line(char *line);
+int ohsh_execute(char **args);
+
+// Builtin shell commands:
+int ohsh_help(char **args);
+int ohsh_exit(char **args);
+
+char *builtin_str[] = {
+    "help",
+    "exit"};
+
+int (*builtin_func[])(char **) = {
+    &ohsh_help,
+    &ohsh_exit};
+
+int ohsh_num_builtins()
+{
+    return sizeof(builtin_str) / sizeof(char *);
+}
 
 int main(int argc, char const *argv[])
 {
@@ -32,7 +53,7 @@ void ohsh_loop(void)
         // Execute: Run the parsed command.
         line = ohsh_read_line();
         args = ohsh_split_line(line);
-        // status = ohsh_execute(args);
+        status = ohsh_execute(args);
 
         free(line);
         free(args);
@@ -117,4 +138,76 @@ char **ohsh_split_line(char *line)
     }
     tokens[position] = NULL;
     return tokens;
+}
+
+int ohsh_launch(char **args)
+{
+    pid_t pid, wpid;
+    int status;
+
+    pid = fork();
+    if (pid == 0)
+    {
+        // Child process
+        if (execvp(args[0], args) == -1)
+        {
+            printf("ohsh: '%s' command not found\n", args[0]);
+        }
+        exit(EXIT_FAILURE);
+    }
+    else if (pid < 0)
+    {
+        // Error forking
+        printf("ohsh: fork failed\n");
+    }
+    else
+    {
+        // Parent process
+        do
+        {
+            wpid = waitpid(pid, &status, 0);
+        } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+    }
+
+    return 1;
+}
+
+int ohsh_execute(char **args)
+{
+    int i;
+
+    if (args[0] == NULL)
+    {
+        // An empty command was entered.
+        return 1;
+    }
+
+    for (i = 0; i < ohsh_num_builtins(); i++)
+    {
+        if (strcmp(args[0], builtin_str[i]) == 0)
+        {
+            return (*builtin_func[i])(args);
+        }
+    }
+
+    return ohsh_launch(args);
+}
+
+int ohsh_help(char **args)
+{
+    int i;
+    printf("Type program names and arguments, and hit enter.\n");
+    printf("The following are built in:\n");
+
+    for (i = 0; i < ohsh_num_builtins(); i++)
+    {
+        printf("  %s\n", builtin_str[i]);
+    }
+
+    return 1;
+}
+
+int ohsh_exit(char **args)
+{
+    return 0;
 }
