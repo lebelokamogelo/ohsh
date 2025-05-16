@@ -1,10 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define OHSH_BUFSIZE 1024
+#define BUFSIZE 1024
+#define TOKEN_BUFSIZE 64
+#define TOKEN_DELIM " \t\r\n\a"
 
 void ohsh_loop(void);
 char *ohsh_read_line(void);
+char **ohsh_split_line(char *line);
 
 int main(int argc, char const *argv[])
 {
@@ -24,12 +27,12 @@ void ohsh_loop(void)
     {
         printf("> ");
 
-                // Read: Read the command from standard input.
+        // Read: Read the command from standard input.
         // Parse: Separate the command string into a program and arguments.
         // Execute: Run the parsed command.
         line = ohsh_read_line();
-        args = ohh_split_line(line);
-        status = ohsh_execute(args);
+        args = ohsh_split_line(line);
+        // status = ohsh_execute(args);
 
         free(line);
         free(args);
@@ -38,7 +41,7 @@ void ohsh_loop(void)
 
 char *ohsh_read_line(void)
 {
-    int bufsize = OHSH_BUFSIZE;
+    int bufsize = BUFSIZE;
     int position = 0;
     char *buffer = malloc(sizeof(char) * bufsize);
     int c;
@@ -69,7 +72,7 @@ char *ohsh_read_line(void)
         // If buffer exceeded then reallocate.
         if (position >= bufsize)
         {
-            bufsize += OHSH_BUFSIZE;
+            bufsize += BUFSIZE;
             buffer = realloc(buffer, bufsize);
             if (!buffer)
             {
@@ -78,4 +81,40 @@ char *ohsh_read_line(void)
             }
         }
     }
+}
+
+char **ohsh_split_line(char *line)
+{
+    int bufsize = TOKEN_BUFSIZE, position = 0;
+    char **tokens = malloc(bufsize * sizeof(char *));
+    char *token;
+
+    if (!tokens)
+    {
+        fprintf(stderr, "ohsh: allocation error\n");
+        exit(EXIT_FAILURE);
+    }
+
+    token = strtok(line, TOKEN_DELIM);
+
+    while (token != NULL)
+    {
+        tokens[position] = token;
+        position++;
+
+        if (position >= bufsize)
+        {
+            bufsize += TOKEN_BUFSIZE;
+            tokens = realloc(tokens, bufsize * sizeof(char *));
+            if (!tokens)
+            {
+                fprintf(stderr, "ohsh: allocation error\n");
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        token = strtok(NULL, TOKEN_DELIM);
+    }
+    tokens[position] = NULL;
+    return tokens;
 }
