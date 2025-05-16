@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <string.h>
 
@@ -20,10 +21,6 @@ int ohsh_exit(void);
 char *builtin_str[] = {
     "help",
     "exit"};
-
-int (*builtin_func[])(void) = {
-    &ohsh_help,
-    &ohsh_exit};
 
 int ohsh_num_builtins()
 {
@@ -186,7 +183,13 @@ int ohsh_execute(char **args)
     {
         if (strcmp(args[0], builtin_str[i]) == 0)
         {
-            return (*builtin_func[i])();
+            switch (i)
+            {
+            case 0:
+                return ohsh_help();
+            case 1:
+                return ohsh_exit();
+            }
         }
     }
 
