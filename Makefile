@@ -7,15 +7,15 @@ BUILD_DIR = build
 $(shell mkdir -p $(BUILD_DIR))
 
 # Main target
-all: $(BUILD_DIR)/main
+all: $(BUILD_DIR)/ohsh
 
 # Compile the program
-$(BUILD_DIR)/main: $(SRC_DIR)/main.c
+$(BUILD_DIR)/ohsh: $(SRC_DIR)/main.c
 	$(CC) $(CFLAGS) $< -o $@
 
 # Run the program
-run: $(BUILD_DIR)/main
-	./$(BUILD_DIR)/main
+run: $(BUILD_DIR)/ohsh
+	./$(BUILD_DIR)/ohsh
 
 # Clean compiled files
 clean:
