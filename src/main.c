@@ -14,14 +14,14 @@ char **ohsh_split_line(char *line);
 int ohsh_execute(char **args);
 
 // Builtin shell commands:
-int ohsh_help(char **args);
-int ohsh_exit(char **args);
+int ohsh_help(void);
+int ohsh_exit(void);
 
 char *builtin_str[] = {
     "help",
     "exit"};
 
-int (*builtin_func[])(char **) = {
+int (*builtin_func[])(void) = {
     &ohsh_help,
     &ohsh_exit};
 
@@ -30,7 +30,7 @@ int ohsh_num_builtins()
     return sizeof(builtin_str) / sizeof(char *);
 }
 
-int main(int argc, char const *argv[])
+int main(void)
 {
     // Run command loop
     ohsh_loop();
@@ -142,7 +142,7 @@ char **ohsh_split_line(char *line)
 
 int ohsh_launch(char **args)
 {
-    pid_t pid, wpid;
+    pid_t pid;
     int status;
 
     pid = fork();
@@ -165,7 +165,7 @@ int ohsh_launch(char **args)
         // Parent process
         do
         {
-            wpid = waitpid(pid, &status, 0);
+            waitpid(pid, &status, 0);
         } while (!WIFEXITED(status) && !WIFSIGNALED(status));
     }
 
@@ -186,14 +186,14 @@ int ohsh_execute(char **args)
     {
         if (strcmp(args[0], builtin_str[i]) == 0)
         {
-            return (*builtin_func[i])(args);
+            return (*builtin_func[i])();
         }
     }
 
     return ohsh_launch(args);
 }
 
-int ohsh_help(char **args)
+int ohsh_help()
 {
     int i;
     printf("Type program names and arguments, and hit enter.\n");
@@ -207,7 +207,7 @@ int ohsh_help(char **args)
     return 1;
 }
 
-int ohsh_exit(char **args)
+int ohsh_exit()
 {
     return 0;
 }
