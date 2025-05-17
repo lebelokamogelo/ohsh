@@ -31,6 +31,19 @@ int ohsh_num_builtins()
 
 int main(void)
 {
+
+    // Load config files, if any.
+    printf("\tWelcome to ohsh!\n");
+
+    printf("  ____  __     ______ ________   __\n");
+    printf(" / __ \\/ /    / __/ // / __/ /  / / \n");
+    printf("/ /_/ / _ \\  _\\ \\/ _  / _// /__/ /__\n");
+    printf("\\____/_//_/ /___/_//_/___/____/____/\n");
+
+    printf("A simple shell implementation in C.\n");
+    printf("created by: Kamogelo\n");
+    printf("version: 0.1\n");
+
     // Run command loop
     ohsh_loop();
 
