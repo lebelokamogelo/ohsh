@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <sys/types.h>
 #include <sys/wait.h>
 #include <string.h>
 
@@ -13,6 +12,8 @@ void ohsh_loop(void);
 char *ohsh_read_line(void);
 char **ohsh_split_line(char *line);
 int ohsh_execute(char **args);
+int ohsh_cd(char **args);
+int ohsh_launch(char **args);
 
 // Builtin shell commands:
 int ohsh_help(void);
@@ -20,7 +21,8 @@ int ohsh_exit(void);
 
 char *builtin_str[] = {
     "help",
-    "exit"};
+    "exit",
+    "cd"};
 
 int ohsh_num_builtins()
 {
@@ -189,6 +191,8 @@ int ohsh_execute(char **args)
                 return ohsh_help();
             case 1:
                 return ohsh_exit();
+            case 2:
+                return ohsh_cd(args);
             }
         }
     }
@@ -213,4 +217,20 @@ int ohsh_help()
 int ohsh_exit()
 {
     return 0;
+}
+
+int ohsh_cd(char **args)
+{
+    if (args[1] == NULL)
+    {
+        fprintf(stderr, "ohsh: cd: missing argument\n");
+    }
+    else
+    {
+        if (chdir(args[1]) != 0)
+        {
+            perror("ohsh");
+        }
+    }
+    return 1;
 }
